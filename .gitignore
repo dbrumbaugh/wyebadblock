@@ -1,6 +1,6 @@
-adblock.so
-librun.o
-wyebab
-!wyebab/
-testrun
 user.css
+.ccls
+.ccls-cache
+bin/*
+build/*
+lib/*

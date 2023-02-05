@@ -2,44 +2,49 @@ LISTNAME=easylist.txt
 PREFIX ?= /usr/local/
 EXTENSION_DIR ?= $(PREFIX)/lib/wyebrowser
 ifeq ($(DEBUG), 1)
-	CFLAGS += -Wall -g
+	CFLAGS += -Wall -g -Iinclude
 else
 	DEBUG = 0
-	CFLAGS += -Wno-deprecated-declarations
+	CFLAGS += -Wno-deprecated-declarations -Iinclude
 endif
 DDEBUG=-DDEBUG=${DEBUG}
 
-all: adblock.so wyebab librun.o testrun
+all: build lib/adblock.so bin/wyebab build/librun.o bin/testrun
 
-adblock.so: ab.c ephy-uri-tester.c ephy-uri-tester.h librun.o makefile
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< librun.o -shared -fPIC \
+PHONY:
+build:
+	mkdir build
+	mkdir bin
+	mkdir lib
+
+lib/adblock.so: src/ab.c src/ephy-uri-tester.c build/librun.o Makefile
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< build/librun.o -shared -fPIC \
 		`pkg-config --cflags --libs gtk+-3.0 glib-2.0 webkit2gtk-4.1` \
 		$(DDEBUG) -DISEXT -DEXENAME=\"wyebab\"
 
-wyebab: ab.c ephy-uri-tester.c ephy-uri-tester.h librun.o makefile
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< librun.o \
+bin/wyebab: src/ab.c src/ephy-uri-tester.c build/librun.o Makefile
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< build/librun.o \
 		`pkg-config --cflags --libs glib-2.0 gio-2.0` \
 		$(DDEBUG) -DDIRNAME=\"wyebadblock\" -DLISTNAME=\"$(LISTNAME)\"
 
-librun.o: wyebrun.c wyebrun.h makefile
+build/librun.o: src/wyebrun.c Makefile
 	$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $< -fPIC\
 		`pkg-config --cflags --libs glib-2.0` \
 		$(DDEBUG)
 
-testrun: wyebrun.c wyebrun.h makefile
+bin/testrun: src/wyebrun.c Makefile
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< \
 		`pkg-config --cflags --libs glib-2.0 gio-2.0` \
 		$(DDEBUG) -DTESTER=1
 
 clean:
-	rm -f adblock.so
-	rm -f wyebab
-	rm -f librun.o
-	rm -f testrun
+	rm -rf build
+	rm -rf bin
+	rm -rf lib
 
 install:
-	install -Dm755 wyebab     $(DESTDIR)$(PREFIX)/bin/wyebab
-	install -Dm755 adblock.so $(DESTDIR)$(EXTENSION_DIR)/adblock.so
+	install -Dm755 bin/wyebab     $(DESTDIR)$(PREFIX)/bin/wyebab
+	install -Dm755 lib/adblock.so $(DESTDIR)$(EXTENSION_DIR)/adblock.so
 
 uninstall:
 	rm -f  $(PREFIX)/bin/wyebab
