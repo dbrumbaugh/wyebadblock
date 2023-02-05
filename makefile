@@ -1,8 +1,8 @@
 LISTNAME=easylist.txt
-PREFIX ?= /usr
+PREFIX ?= /usr/local/
 EXTENSION_DIR ?= $(PREFIX)/lib/wyebrowser
 ifeq ($(DEBUG), 1)
-	CFLAGS += -Wall
+	CFLAGS += -Wall -g
 else
 	DEBUG = 0
 	CFLAGS += -Wno-deprecated-declarations
@@ -13,7 +13,7 @@ all: adblock.so wyebab librun.o testrun
 
 adblock.so: ab.c ephy-uri-tester.c ephy-uri-tester.h librun.o makefile
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< librun.o -shared -fPIC \
-		`pkg-config --cflags --libs gtk+-3.0 glib-2.0 webkit2gtk-4.0` \
+		`pkg-config --cflags --libs gtk+-3.0 glib-2.0 webkit2gtk-4.1` \
 		$(DDEBUG) -DISEXT -DEXENAME=\"wyebab\"
 
 wyebab: ab.c ephy-uri-tester.c ephy-uri-tester.h librun.o makefile
